@@ -1,6 +1,6 @@
 import React from 'react'
 
-import{
+import {
   BrowserRouter as Router,
   Routes,
   Route,
@@ -11,35 +11,60 @@ import SignUp from './pages/Auth/SignUp';
 import Home from './pages/Dashboard/Home';
 import Income from './pages/Dashboard/Income';
 import Expense from './pages/Dashboard/Expense';
+import UserProvider from './context/userContext';
+import { Toaster } from "react-hot-toast"
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   return (
-    <div>
-      <Router>
-        <Routes>
-          <Route path='/' element={<Root/>}/>
-          <Route path='/login' exact element={<Login/>}/>
-          <Route path='/signUp' exact element={<SignUp/>}/>
-          <Route path='/dashboard' exact element={<Home />}/>
-          <Route path='/income' exact element={<Income/>}/>
-          <Route path='/expense' exact element={<Expense />}/>
-        </Routes>
-      </Router>
+    <UserProvider>
+      <div>
+        <Router>
+          <Routes>
+            <Route path='/' element={<Root />} />
+            <Route path='/login' exact element={<Login />} />
+            <Route path='/signup' exact element={<SignUp />} />
+            <Route path='/dashboard' exact element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            } />
+            <Route path='/income' exact element={
+              <ProtectedRoute>
+                <Income />
+              </ProtectedRoute>
+            } />
+            <Route path='/expense' exact element={
+              <ProtectedRoute>
+                <Expense />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </Router>
 
-    </div>
+      </div>
+      <Toaster
+        toastOptions={{
+          className: "",
+          style: {
+            fontSize: '13px'
+          }
+        }}
+      />
+    </UserProvider>
   )
 }
 
 export default App;
 
-const Root = ()=>{
+const Root = () => {
   //check if token exists in loocalStorage
   const isAuthenticated = !!localStorage.getItem("token");
 
   //redirected to dashboard if authenticated otherwise to login
   return isAuthenticated ? (
-    <Navigate to="/dashboard"/>
+    <Navigate to="/dashboard" />
   ) : (
-    <Navigate to="/Login"/>
+    <Navigate to="/login" />
   )
 }

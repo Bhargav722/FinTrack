@@ -3,11 +3,17 @@ import AuthLayout from '../../components/layouts/AuthLayout'
 import { Link, useNavigate } from 'react-router-dom'
 import Input from '../../components/Inputs/Input'
 import { validateEmail } from "../../utils/helper"
+import axiosInstance from '../../utils/axiosInstance'
+import { API_PATHS } from '../../utils/apiPaths'
+import { useContext } from 'react'
+import { UserContext } from '../../context/userContext'
 
 const Login = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState(null)
+
+  const { updateUser } = useContext(UserContext)
   const navigate = useNavigate()
 
   const handleLogin = async (e) => {
@@ -25,14 +31,41 @@ const Login = () => {
       return
     }
 
-    // Clear previous errors
+
     setError("")
 
-    // 🔥 Simulate login success (you can replace with API later)
-    console.log("Logged In:", { email, password })
+    //Login API Call
+    try {
+      console.log("Attempting login with:", email);
+      const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
+        email,
+        password,
+      })
+      console.log("Login response:", response.data);
+      const { token, user } = response.data
+      if (token) {
+        console.log("Token received, saving to localStorage");
+        localStorage.setItem("token", token)
+        console.log("Updating user context:", user);
+        updateUser(user)
+        console.log("Navigating to dashboard");
+        navigate("/dashboard")
+      } else {
+        console.error("No token in response");
+        setError("Login failed - no token received")
+      }
 
-    // Navigate to dashboard or home
-    navigate("/dashboard")
+    } catch (error) {
+      console.error("Login error:", error);
+      console.error("Error response:", error.response?.data);
+      if (error.response && error.response.data.message) {
+        setError(error.response.data.message)
+      } else {
+        setError("Something went wrong. Please try again.")
+      }
+
+    }
+
   }
 
   return (
